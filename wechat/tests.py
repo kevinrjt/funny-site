@@ -1,3 +1,10 @@
-from django.test import TestCase
+import authority
 
-# Create your tests here.
+import json, urllib
+from ConfigParser import SafeConfigParser
+
+from django.test import TestCase
+import requests
+
+if __name__ == '__main__':
+    pass

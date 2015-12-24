@@ -1,9 +1,9 @@
-import time
-import hashlib
+import authority
+
+import time, urllib
+
 from bs4 import BeautifulSoup
-from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
 class WeChatInterfaceView(View):
@@ -12,14 +12,7 @@ class WeChatInterfaceView(View):
         timestamp = request.GET.get('timestamp', None)
         nonce = request.GET.get('nonce', None)
         echostr = request.GET.get('echostr', None)
-
-        token = 'kevinmessiren'
-
-        tmpList = [token, timestamp, nonce]
-        tmpList.sort()
-        tmpstr = '%s%s%s' % tuple(tmpList)
-        tmpstr = hashlib.sha1(tmpstr).hexdigest()
-        if tmpstr == signature:
+        if authority.validate(signature, timestamp, nonce):
             return render(request, 'get.html', {'str': echostr}, content_type='text/plain')
 
     def post(self, request):
@@ -28,13 +21,21 @@ class WeChatInterfaceView(View):
         toUserName = soup.tousername.text
         createTime = soup.createtime.text
         msgType = soup.msgtype.text
-        content = soup.content.text
         msgId = soup.msgid.text
+
+        replyContent = ''
+
+        if msgType == 'text':
+            content = soup.content.text
+            replyContent = content[::-1]
+        elif msgType == 'image':
+            replyContent = '1234567890'
+        else:
+            replyContent = msgType
         return render(request, 'reply_text.xml',
                       {'toUserName': fromUserName,
                        'fromUserName': toUserName,
                        'createTime': time.time(),
-                       'msgType': msgType,
-                       'content': content},
-                      content_type = 'application/xml'
-        )
+                       'content': replyContent
+                      },content_type = 'application/xml'
+                     )
