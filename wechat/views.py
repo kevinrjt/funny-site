@@ -1,6 +1,8 @@
+#coding:utf-8
+
 import authority
 
-import time, urllib
+import ast, time, urllib
 
 from bs4 import BeautifulSoup
 from django.shortcuts import render
@@ -27,7 +29,10 @@ class WeChatInterfaceView(View):
 
         if msgType == 'text':
             content = soup.content.text
-            replyContent = content[::-1]
+            try:
+                replyContent = str(eval(content))
+            except Exception:
+                replyContent = content[::-1]
         elif msgType == 'image':
             replyContent = '1234567890'
         else:
